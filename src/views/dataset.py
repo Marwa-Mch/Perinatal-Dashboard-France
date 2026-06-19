@@ -1,49 +1,49 @@
-# Vue `dataset` (View dans MVC)
-
-# Cette view est responsable uniquement de l'affichage. Elle appelle le controller
-# pour obtenir des données prêtes à être affichées et ne comporte pas de logique
-# métier lourde.
+# =====================================================
+# PAGE DATASET — PRÉSENTATION DES DONNÉES
+# =====================================================
 
 import streamlit as st
-from src.controllers.dataset_controller import DatasetController
+
+from src.controllers.naissances_controller import get_data_naissances
+
 
 def load_view():
-    """Vue de description du jeu de données
-    
-    Charge et affiche la page de présentation du Dataset en respectant MVC.
 
-    La vue :
-    - appelle le controller pour récupérer les données,
-    - affiche des textes et des actions (boutons),
-    - présente des visualisations préparées par le controller.
-    """
+    st.title("Jeu de données — Santé périnatale")
 
-    st.set_page_config(page_title="Jeu de données", layout="wide")
-
-    st.title("Jeu de données du projet")
-
-    # Instancier / utiliser le controller pour obtenir le dataset
-    controller = DatasetController()
-    df = controller.get_dataset() # Appel au controller (c'est lui qui gère la logique métier)
-
-    st.subheader("Aperçu des données")
     st.markdown(
         """
-        Ce projet utilise un jeu de données des matchs disputés par Roger Federer de 1998 à 2003.
-        
-        Il est public et disponible gratuitement sur https://github.com/ipython-books/cookbook-2nd-data/blob/master/federer.csv?raw=true.
+        Ce projet analyse des indicateurs de santé périnatale en France,
+        à partir de fichiers nettoyés dans le notebook.
+
+        Pour cette première version, nous travaillons sur les données de naissances.
         """
     )
 
-    # Afficher un aperçu des données via le controller
-    st.dataframe(df.head(10))
+    df_france, df_regions, df_departements = get_data_naissances()
 
-    # Afficher un résumé statistique préparé par le controller
-    st.subheader("Statistiques descriptives")
-    summary = controller.get_summary(df)
-    st.dataframe(summary)
+    st.header("Fichiers utilisés")
 
-    # Visualisation fournie par le controller
-    st.subheader("Visualisation : événements par année")
-    fig = controller.plot_counts_by_year(df)
-    st.pyplot(fig)
+    st.markdown(
+        """
+        - `naissances_france.csv` : données France entière
+        - `naissances_regions.csv` : données par région
+        - `naissances_departements.csv` : données par département
+        """
+    )
+
+    st.header("Aperçu France entière")
+    st.dataframe(df_france.head())
+
+    st.header("Aperçu régions")
+    st.dataframe(df_regions.head())
+
+    st.header("Aperçu départements")
+    st.dataframe(df_departements.head())
+
+    st.info(
+        """
+        Les données affichées ici proviennent des fichiers CSV déjà nettoyés.
+        Le nettoyage principal a été réalisé dans le notebook `01_naissances.ipynb`.
+        """
+    )

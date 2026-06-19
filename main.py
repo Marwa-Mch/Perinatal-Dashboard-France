@@ -2,7 +2,7 @@ import json
 
 import streamlit as st
 
-from src.views import home, dataset, analysis, conclusion, login, logout
+from src.views import home, dataset, analysis, conclusion, login, logout, naissance_views
 from src.router import get_route, redirect
 import utils as utl
 
@@ -31,6 +31,8 @@ def navigation():
         dataset.load_view()
     elif route == "/analysis":
         analysis.load_view()
+    elif route == "/naissances":
+        naissance_views.load_view()
     elif route == "/conclusion":
         conclusion.load_view()
     elif route == "/logout":

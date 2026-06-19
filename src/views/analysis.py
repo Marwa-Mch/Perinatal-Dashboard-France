@@ -1,50 +1,104 @@
+# =====================================================
+# IMPORTATION DES BIBLIOTHÈQUES
+# =====================================================
+
+# Streamlit sert à afficher la page web
 import streamlit as st
 
-def load_view():
-    """Vue d'analyse — endroit recommandé pour vos graphiques et visualisations.
+# Matplotlib sert à créer les graphiques
+import matplotlib.pyplot as plt
 
-    Recommandations :
-    - Sur cette page, vous pouvez déposer vos graphiques (exploratoires, diagnostics, modèles de Machine Learning).
-    - Ces conseils sont facultatifs : adaptez‑les selon votre projet et vos préférences pédagogiques.
-    - Utilisez des légendes et interprétations courtes pour chaque graphique afin que le lecteur comprenne ce qu'il voit.
+# On importe la fonction du Controller
+# Elle récupère les 3 fichiers CSV propres
+from src.controllers.naissances_controller import get_data_naissances
+
+
+# =====================================================
+# PAGE ANALYSE
+# =====================================================
+
+def load_view():
+
+    """
+    Page d'analyse du projet.
+    Ici, on affiche les graphiques à partir des données nettoyées.
     """
 
-    st.set_page_config(page_title="Analyse", layout="wide")
+    # Titre principal de la page
+    st.title("Analyse des indicateurs de santé périnatale")
 
-    st.title("Analyse — visualisations et exploration")
-
+    # Texte d'introduction
     st.markdown(
         """
-        Sur cette page, vous devriez regrouper les graphiques les plus pertinents qui illustrent vos découvertes.
-
-        Vous pouvez inclure par exemple :
-        - Histogrammes et densités pour étudier la distribution d'une variable.
-        - Boxplots pour repérer des valeurs extrêmes.
-        - Heatmaps / matrices de corrélation pour explorer les relations entre variables.
-        - Pairplots ou scatterplots pour visualiser des relations bivariées.
-        - Graphiques temporels si vos données ont une composante date/heure.
-        - Résultats de modèles de Machine Learning (courbes d'apprentissage, matrices de confusion, etc.).
-        - Inférences via des boutons pour générer des prédictions à la volée...
-
-        Conseils (facultatifs mais recommandés) :
-        - Ajoutez un titre et une courte interprétation sous chaque graphique (2‑3 lignes).
-        - Sauvegardez les figures et fournissez le code qui les génère pour la reproductibilité.
-        - Si vous utilisez des notebooks, commentez les étapes de transformation qui précèdent chaque figure.
+        Cette page présente les premières visualisations réalisées à partir
+        des fichiers nettoyés dans le notebook.
         """
     )
 
-    st.subheader("Checklist pour vos visualisations")
-    st.markdown(
-        """
-        - [ ] Choisir le(s) graphique(s) adaptés aux variables.
-        - [ ] Vérifier la présence de valeurs manquantes et les traiter.
-        - [ ] Annoter les graphiques (titre, légende, unités).
-        - [ ] Rédiger 2‑3 phrases d'interprétation par graphique.
-        - [ ] Garder le code reproductible (fonctions / scripts séparés).
-        """
+    # =====================================================
+    # CHARGEMENT DES DONNÉES
+    # =====================================================
+
+    # On récupère les 3 DataFrames depuis le Controller
+    df_france, df_regions, df_departements = get_data_naissances()
+
+    # =====================================================
+    # SECTION 1 : NAISSANCES FRANCE ENTIÈRE
+    # =====================================================
+
+    st.header("1. Évolution des naissances en France")
+
+    # Listes vides pour construire le graphique
+    annees = []
+    valeurs = []
+
+    # On parcourt toutes les colonnes du DataFrame France
+    for colonne in df_france.columns:
+
+        # On sélectionne seulement les colonnes des naissances totales
+        if "naissances_totales" in colonne:
+
+            # Exemple :
+            # colonne = "2012_naissances_totales"
+            # split("_")[0] permet de récupérer "2012"
+            annee = colonne.split("_")[0]
+
+            # On ajoute l'année dans la liste
+            annees.append(annee)
+
+            # df_france contient une seule ligne
+            # iloc[0] récupère la valeur de cette ligne
+            valeur = df_france[colonne].iloc[0]
+
+            # On ajoute la valeur dans la liste
+            valeurs.append(valeur)
+
+    # Création du graphique
+    fig, ax = plt.subplots()
+
+    # Courbe d'évolution
+    ax.plot(
+        annees,
+        valeurs,
+        marker="o"
     )
 
-    st.subheader("Note aux étudiants")
-    st.info(
-        "Ces suggestions sont des bonnes pratiques : vous n'êtes pas obligé·e·s de toutes les suivre, mais elles facilitent la lecture et l'évaluation de votre travail."
+    # Titre et axes
+    ax.set_title("Évolution des naissances totales en France")
+    ax.set_xlabel("Année")
+    ax.set_ylabel("Nombre de naissances")
+
+    # Grille de lecture
+    ax.grid(True)
+
+    # Affichage dans Streamlit
+    st.pyplot(fig)
+
+    # Petite interprétation
+    st.markdown(
+        """
+        **Interprétation :**  
+        Ce graphique permet d'observer l'évolution du nombre total de naissances
+        en France sur la période disponible dans le fichier.
+        """
     )

@@ -1,25 +1,42 @@
 import streamlit as st
 
+
 def load_view():
-    """Vue de la page d'accueil du projet
 
-    Objectifs :
-    - Présenter rapidement le projet et sa structure.
-    - Donner des actions claires (explorer les données, analyses, objectifs).
-    - Indiquer les bonnes pratiques et commandes pour démarrer.
-    """
-
-    st.set_page_config(page_title="Accueil", layout="wide")
-
-    st.title("Accueil — Projet d'analyse de données")
+    st.title("Indicateurs de santé périnatale en France")
 
     st.markdown(
         """
-        Bienvenue sur votre projet d'analyse de données / Data Science. Cette page d'accueil est conçue pour :
+        Bienvenue dans ce projet d'analyse de données consacré aux indicateurs
+        de santé périnatale en France.
 
-        - Accueillir le visiteur de votre projet.
-        - Expliquer l'objectif, les ambitions du projet et la raison pour laquelle vous le menez.
-        - Eventuellement vous présenter brièvement.
-        - Ce que vous jugerez bon de documenter pour introduire le projet.
+        L'objectif du projet est d'explorer l'évolution des naissances et,
+        progressivement, d'autres indicateurs liés à la santé périnatale :
+        mortalité périnatale, MFIU et IMG.
+
+        Cette application a été construite avec Streamlit dans une architecture
+        MVC afin de séparer clairement les données, la logique et l'affichage.
+        """
+    )
+
+    st.header("Objectifs du projet")
+
+    st.markdown(
+        """
+        - Étudier l'évolution des naissances en France.
+        - Comparer les indicateurs entre régions.
+        - Comparer les indicateurs entre départements.
+        - Construire un tableau de bord clair et interactif.
+        """
+    )
+
+    st.header("Structure de l'application")
+
+    st.markdown(
+        """
+        - **Accueil** : présentation du projet.
+        - **Jeu de données** : description et aperçu des fichiers utilisés.
+        - **Analyse** : visualisations et interprétations.
+        - **Conclusion** : synthèse des résultats.
         """
     )
