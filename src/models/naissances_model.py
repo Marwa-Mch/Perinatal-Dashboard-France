@@ -1,74 +1,66 @@
 # =====================================================
-# IMPORTATION DES BIBLIOTHÈQUES
+# MODEL — DONNÉES DE NAISSANCES
 # =====================================================
 
-# Pandas permet de lire et manipuler les fichiers CSV
-import pandas as pd
+from pathlib import Path
 
-# Streamlit permet d'utiliser le cache
+import pandas as pd
 import streamlit as st
 
 
-# =====================================================
-# CHARGEMENT DES DONNÉES FRANCE ENTIÈRE
-# =====================================================
+BASE_DIR = Path(__file__).resolve().parents[2]
+PROCESSED_DATA_DIR = BASE_DIR / "data" / "processed"
 
-# Le cache évite de relire le fichier CSV
-# à chaque interaction utilisateur
+
+def verifier_fichiers(fichiers):
+    """
+    Vérifie que tous les fichiers attendus existent.
+    """
+
+    fichiers_manquants = [
+        str(fichier)
+        for fichier in fichiers
+        if not fichier.exists()
+    ]
+
+    if fichiers_manquants:
+        raise FileNotFoundError(
+            "Fichiers de naissances introuvables : "
+            + ", ".join(fichiers_manquants)
+        )
+
+
 @st.cache_data
 def charger_naissances_france():
-
     """
-    Charge le fichier des naissances
-    pour la France entière.
+    Charge les données de naissances pour la France entière.
     """
 
-    # Lecture du fichier CSV
-    df = pd.read_csv(
-        "data/processed/naissances_france.csv"
-    )
+    fichier = PROCESSED_DATA_DIR / "naissances_france.csv"
+    verifier_fichiers([fichier])
 
-    # Retourne le dataframe
-    return df
+    return pd.read_csv(fichier)
 
-
-# =====================================================
-# CHARGEMENT DES DONNÉES RÉGIONS
-# =====================================================
 
 @st.cache_data
 def charger_naissances_regions():
-
     """
-    Charge le fichier des naissances
-    par région.
+    Charge les données de naissances par région.
     """
 
-    # Lecture du fichier CSV
-    df = pd.read_csv(
-        "data/processed/naissances_regions.csv"
-    )
+    fichier = PROCESSED_DATA_DIR / "naissances_regions.csv"
+    verifier_fichiers([fichier])
 
-    # Retourne le dataframe
-    return df
+    return pd.read_csv(fichier)
 
-
-# =====================================================
-# CHARGEMENT DES DONNÉES DÉPARTEMENTS
-# =====================================================
 
 @st.cache_data
 def charger_naissances_departements():
-
     """
-    Charge le fichier des naissances
-    par département.
+    Charge les données de naissances par département.
     """
 
-    # Lecture du fichier CSV
-    df = pd.read_csv(
-        "data/processed/naissances_departements.csv"
-    )
+    fichier = PROCESSED_DATA_DIR / "naissances_departements.csv"
+    verifier_fichiers([fichier])
 
-    # Retourne le dataframe
-    return df
+    return pd.read_csv(fichier)

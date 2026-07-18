@@ -1,19 +1,38 @@
 from src.models.session import Session
 
-def signup(login, mdp):
+
+def signup(login: str, mdp: str) -> dict:
     """
     Contrôleur d'inscription.
-    Retourne un dictionnaire avec le résultat et le message.
     """
-    s = Session(login, mdp)
-    
-    created = s.signin()
+
+    if not login.strip() or not mdp:
+        return {
+            "success": False,
+            "message": "Veuillez renseigner un e-mail et un mot de passe."
+        }
+
+    session = Session(login, mdp)
+
+    created = session.signup()
+
     if not created:
-        return {"success": False, "message": "E-mail déjà utilisé. Veuillez vous connecter."}
-    
-    s.login()
-    if s.logged:
-        s.persist()
-        return {"success": True, "message": "Compte créé et connecté avec succès"}
-    else:
-        return {"success": False, "message": "Impossible de se connecter après l'inscription"}
+        return {
+            "success": False,
+            "message": "E-mail déjà utilisé. Veuillez vous connecter."
+        }
+
+    session.login()
+
+    if session.logged:
+        session.persist()
+
+        return {
+            "success": True,
+            "message": "Compte créé et connecté avec succès."
+        }
+
+    return {
+        "success": False,
+        "message": "Impossible de se connecter après l'inscription."
+    }

@@ -2,20 +2,43 @@ import streamlit as st
 
 
 def load_view():
+    """
+    Page d'accueil de l'application.
 
-    st.title("Indicateurs de santé périnatale en France")
+    Cette vue présente :
+    - le contexte du projet ;
+    - les objectifs ;
+    - les indicateurs analysés ;
+    - les principales technologies utilisées.
+    """
+
+    st.title("Perinatal Dashboard France")
+
+    st.subheader(
+        "Tableau de bord interactif des indicateurs de santé périnatale"
+    )
 
     st.markdown(
         """
-        Bienvenue dans ce projet d'analyse de données consacré aux indicateurs
-        de santé périnatale en France.
+        Cette application permet d'explorer plusieurs indicateurs de santé
+        périnatale en France à partir de données publiques.
 
-        L'objectif du projet est d'explorer l'évolution des naissances et,
-        progressivement, d'autres indicateurs liés à la santé périnatale :
-        mortalité périnatale, MFIU et IMG.
+        Le projet porte actuellement sur deux axes principaux :
 
-        Cette application a été construite avec Streamlit dans une architecture
-        MVC afin de séparer clairement les données, la logique et l'affichage.
+        - l'évolution des **naissances** ;
+        - l'évolution de la **mortinatalité**.
+
+        Les résultats peuvent être étudiés à différentes échelles géographiques
+        selon les données disponibles : France entière, régions et départements.
+        """
+    )
+
+    st.header("Problématique")
+
+    st.markdown(
+        """
+        Comment rendre les données publiques de santé périnatale plus lisibles,
+        comparables et accessibles grâce à une application interactive ?
         """
     )
 
@@ -23,20 +46,67 @@ def load_view():
 
     st.markdown(
         """
-        - Étudier l'évolution des naissances en France.
-        - Comparer les indicateurs entre régions.
-        - Comparer les indicateurs entre départements.
-        - Construire un tableau de bord clair et interactif.
+        - Nettoyer et structurer des données publiques avec Python et Pandas.
+        - Organiser les données par niveau géographique.
+        - Stocker et interroger certaines données dans une base SQLite.
+        - Étudier l'évolution des naissances entre 2012 et 2023.
+        - Étudier les indicateurs de mortinatalité.
+        - Comparer les résultats entre les territoires.
+        - Proposer des visualisations interactives et compréhensibles.
+        - Permettre la consultation et le téléchargement des résultats.
         """
     )
 
-    st.header("Structure de l'application")
+    st.header("Fonctionnalités de l'application")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Analyse des naissances")
+        st.markdown(
+            """
+            - Évolution nationale.
+            - Comparaison des régions.
+            - Analyse départementale.
+            - Sélection d'une année.
+            - Affichage des données.
+            """
+        )
+
+    with col2:
+        st.subheader("Analyse de la mortinatalité")
+        st.markdown(
+            """
+            - Évolution des taux en France.
+            - Comparaison entre régions.
+            - Analyse selon l'année.
+            - Visualisations statistiques.
+            - Consultation des résultats SQL.
+            """
+        )
+
+    st.header("Architecture et technologies")
 
     st.markdown(
         """
-        - **Accueil** : présentation du projet.
-        - **Jeu de données** : description et aperçu des fichiers utilisés.
-        - **Analyse** : visualisations et interprétations.
-        - **Conclusion** : synthèse des résultats.
+        L'application a été développée avec une architecture **MVC** afin de
+        séparer les responsabilités :
+
+        - **Models** : chargement et accès aux données ;
+        - **Controllers** : traitement et transmission des données ;
+        - **Views** : affichage des pages Streamlit.
+
+        Les principales technologies utilisées sont :
+
+        `Python` · `Pandas` · `SQLite` · `SQL` · `Streamlit` ·
+        `Matplotlib` · `Plotly` · `Git` · `GitHub`
+        """
+    )
+
+    st.info(
+        """
+        Cette application est un projet pédagogique réalisé dans le cadre
+        de la préparation au titre professionnel Concepteur Développeur
+        d'Applications.
         """
     )

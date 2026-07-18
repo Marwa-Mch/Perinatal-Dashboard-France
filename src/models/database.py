@@ -1,27 +1,70 @@
+# =====================================================
+# MODEL — BASE DE DONNÉES UTILISATEURS
+# =====================================================
+
+from pathlib import Path
 import sqlite3
 
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+DATABASE_PATH = BASE_DIR / "data" / "users.db"
+
+
 class Database:
+    """
+    Gère la connexion et les opérations simples
+    sur la base SQLite des utilisateurs.
+    """
+
     def __init__(self) -> None:
-        self.__db = sqlite3.connect("data/users.db")
+        self.__db = sqlite3.connect(DATABASE_PATH)
 
     def setup(self):
-        self.execute("CREATE TABLE IF NOT EXISTS users(uid INTEGER PRIMARY KEY UNIQUE ,email VARCHAR UNIQUE, password VARCHAR)")
-        self.execute("CREATE TABLE IF NOT EXISTS logs(id INTEGER PRIMARY KEY UNIQUE ,uid INTERGER ,action VARCHAR ,value VARCHAR)")
-        try:
-            self.execute(f"INSERT INTO users (email,password) VALUES ('admin', 'admin')")
-        except:
-            print("Admin already exists.")
+        """
+        Crée les tables si elles n'existent pas.
+        """
+
+        self.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                uid INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+            """
+        )
+
+        self.execute(
+            """
+            CREATE TABLE IF NOT EXISTS logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                uid INTEGER,
+                action TEXT,
+                value TEXT,
+                FOREIGN KEY (uid) REFERENCES users(uid)
+            )
+            """
+        )
+
         self.commit()
 
-    def drop(self):
-        self.execute("DROP TABLE users")
-        self.execute("DROP TABLE logs")
+    def execute(self, query: str, parameters=()):
+        """
+        Exécute une requête SQL avec des paramètres sécurisés.
+        """
 
-    def execute(self, query:str):
-        return self.__db.execute(query)
+        return self.__db.execute(query, parameters)
 
     def commit(self):
-        return self.__db.commit()
+        """
+        Valide les modifications dans la base.
+        """
+
+        self.__db.commit()
 
     def close(self):
+        """
+        Ferme la connexion à SQLite.
+        """
+
         self.__db.close()

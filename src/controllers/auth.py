@@ -1,25 +1,50 @@
+from pathlib import Path
+import json
+
 from src.models.session import Session
-import json 
+
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+SESSION_PATH = BASE_DIR / "session.json"
+
 
 def auth(login: str, mdp: str) -> dict:
     """
     Contrôleur d'authentification.
-    Retourne un dictionnaire avec le résultat et le message.
     """
-    s = Session(login, mdp)
-    s.login()
-    if s.logged:
-        s.persist()
-        return {"success": True, "message": "Connexion réussie"}
-    else:
-        return {"success": False, "message": "Identifiants incorrects"}
 
-def logout():
+    if not login.strip() or not mdp:
+        return {
+            "success": False,
+            "message": "Veuillez renseigner un e-mail et un mot de passe."
+        }
+
+    session = Session(login, mdp)
+    session.login()
+
+    if session.logged:
+        session.persist()
+
+        return {
+            "success": True,
+            "message": "Connexion réussie."
+        }
+
+    return {
+        "success": False,
+        "message": "Identifiants incorrects."
+    }
+
+
+def logout() -> dict:
     """
-    Contrôleur de déconnexion.
-    Efface la session et retourne un message.
+    Efface la session courante.
     """
-    data = {"email": ""}
-    with open("session.json", 'w') as outfile:
-        json.dump(data, outfile)
-    return {"success": True, "message": "Déconnexion réussie"}
+
+    with open(SESSION_PATH, "w", encoding="utf-8") as outfile:
+        json.dump({"email": ""}, outfile)
+
+    return {
+        "success": True,
+        "message": "Déconnexion réussie."
+    }
