@@ -1,7 +1,9 @@
-setuptools
-matplotlib
-numpy
-pandas
-seaborn
 streamlit
+pandas
+numpy
+matplotlib
+plotly
+statsmodels
+seaborn
+setuptools
 certifi
