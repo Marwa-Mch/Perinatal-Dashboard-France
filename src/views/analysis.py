@@ -409,6 +409,37 @@ def creer_scatter_regions(
     )
 
 
+def preparer_export_analyse(dataframe: pd.DataFrame):
+    """
+    Prépare un export CSV professionnel :
+    - années, rangs, naissances et effectifs sans décimales ;
+    - taux, variations et statistiques arrondis à deux décimales ;
+    - séparateur compatible avec Excel en français.
+    """
+
+    export = dataframe.copy()
+
+    for colonne in export.select_dtypes(include="number").columns:
+        nom_colonne = str(colonne).lower()
+
+        if (
+            colonne in {"Année", "Rang"}
+            or "naissance" in nom_colonne
+            or "effectif" in nom_colonne
+        ):
+            export[colonne] = pd.to_numeric(
+                export[colonne],
+                errors="coerce"
+            ).round(0).astype("Int64")
+        else:
+            export[colonne] = pd.to_numeric(
+                export[colonne],
+                errors="coerce"
+            ).round(2)
+
+    return export
+
+
 def afficher_telechargement(
     dataframe: pd.DataFrame,
     nom_fichier: str,
@@ -426,8 +457,14 @@ def afficher_telechargement(
 
     if utilisateur:
 
-        contenu = dataframe.to_csv(
-            index=False
+        dataframe_export = preparer_export_analyse(
+            dataframe
+        )
+
+        contenu = dataframe_export.to_csv(
+            index=False,
+            sep=";",
+            decimal=","
         ).encode("utf-8-sig")
 
         st.success(
@@ -455,6 +492,10 @@ def afficher_telechargement(
             key=f"login_{cle}",
             use_container_width=True
         ):
+            st.session_state[
+                "page_apres_connexion"
+            ] = "/analysis"
+
             redirect(
                 "/login",
                 reload=True
@@ -950,8 +991,21 @@ def load_view():
                 hide_index=True
             )
 
+            export_national = donnees_croisees.rename(
+                columns={
+                    "Naissances": indicateur_naissances_affiche,
+                    "Mortinatalité": indicateur_mortinatalite_affiche
+                }
+            ).copy()
+
+            export_national.insert(
+                1,
+                "Niveau géographique",
+                "France entière"
+            )
+
             afficher_telechargement(
-                donnees_croisees,
+                export_national,
                 (
                     f"analyse_croisee_france_"
                     f"{annee_debut}_{annee_fin}.csv"
@@ -1098,8 +1152,20 @@ def load_view():
                 hide_index=True
             )
 
+            export_regional = donnees_scatter.rename(
+                columns={
+                    "Taux de mortinatalité": (
+                        f"{indicateur_mortinatalite_affiche} "
+                        f"({annee_regionale})"
+                    )
+                }
+            ).copy()
+
+            export_regional.insert(0, "Année", annee_regionale)
+            export_regional.insert(1, "Niveau géographique", "Région")
+
             afficher_telechargement(
-                donnees_scatter,
+                export_regional,
                 (
                     f"analyse_regionale_"
                     f"{annee_regionale}.csv"
@@ -1208,8 +1274,16 @@ def load_view():
                 use_container_width=True
             )
 
+            export_heatmap = heatmap.rename(
+                columns={
+                    "Taux": indicateur_mortinatalite_affiche
+                }
+            ).copy()
+
+            export_heatmap.insert(1, "Niveau géographique", "Région")
+
             afficher_telechargement(
-                heatmap,
+                export_heatmap,
                 (
                     f"heatmap_regions_"
                     f"{indicateur_mortinatalite_technique}_"
@@ -1343,10 +1417,25 @@ def load_view():
             """
         )
 
+        export_sql = resultat_classement.rename(
+            columns={
+                "region": "Région",
+                "valeur": (
+                    f"{indicateur_mortinatalite_affiche} "
+                    f"({annee_sql})"
+                )
+            }
+        ).copy()
+
+        export_sql.insert(0, "Rang", range(1, len(export_sql) + 1))
+        export_sql.insert(1, "Année", annee_sql)
+        export_sql.insert(2, "Niveau géographique", "Région")
+
         afficher_telechargement(
-            resultat_classement,
+            export_sql,
             (
                 f"classement_sql_regions_"
+                f"{indicateur_mortinatalite_technique}_"
                 f"{annee_sql}.csv"
             ),
             "download_resultat_sql"

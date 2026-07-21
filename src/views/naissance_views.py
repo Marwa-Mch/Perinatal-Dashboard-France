@@ -270,6 +270,38 @@ def formater_nombre(valeur):
     return f"{valeur:,.0f}".replace(",", " ")
 
 
+def preparer_export_naissances(dataframe: pd.DataFrame):
+    """
+    Prépare un fichier CSV lisible et compatible avec Excel :
+    - séparateur point-virgule ;
+    - nombres de naissances sans décimales ;
+    - années converties en entiers ;
+    - autres nombres arrondis à deux décimales.
+    """
+
+    export = dataframe.copy()
+
+    for colonne in export.select_dtypes(include="number").columns:
+        nom_colonne = str(colonne).lower()
+
+        if (
+            colonne == "Année"
+            or "naissance" in nom_colonne
+            or colonne in {"Valeur début", "Valeur fin"}
+        ):
+            export[colonne] = pd.to_numeric(
+                export[colonne],
+                errors="coerce"
+            ).round(0).astype("Int64")
+        else:
+            export[colonne] = pd.to_numeric(
+                export[colonne],
+                errors="coerce"
+            ).round(2)
+
+    return export
+
+
 def afficher_telechargement(
     dataframe: pd.DataFrame,
     nom_fichier: str,
@@ -287,8 +319,14 @@ def afficher_telechargement(
 
     if utilisateur_connecte:
 
-        contenu_csv = dataframe.to_csv(
-            index=False
+        dataframe_export = preparer_export_naissances(
+            dataframe
+        )
+
+        contenu_csv = dataframe_export.to_csv(
+            index=False,
+            sep=";",
+            decimal=","
         ).encode("utf-8-sig")
 
         st.success(
@@ -321,6 +359,12 @@ def afficher_telechargement(
             key=f"connexion_{cle_bouton}",
             use_container_width=True
         ):
+            # Mémorise la page Naissances afin d'y revenir
+            # automatiquement après la connexion.
+            st.session_state[
+                "page_apres_connexion"
+            ] = "/naissances"
+
             redirect(
                 "/login",
                 reload=True
@@ -474,8 +518,20 @@ def afficher_france(
         hide_index=True
     )
 
+    export_france = evolution.rename(
+        columns={
+            "Nombre de naissances": indicateur_affiche
+        }
+    ).copy()
+
+    export_france.insert(
+        1,
+        "Niveau géographique",
+        "France entière"
+    )
+
     afficher_telechargement(
-        evolution,
+        export_france,
         (
             f"naissances_france_"
             f"{indicateur_technique}_"
@@ -679,8 +735,30 @@ def afficher_territoires(
             hide_index=True
         )
 
+        export_classement = comparaison.rename(
+            columns={
+                "Nombre de naissances": indicateur_affiche
+            }
+        ).copy()
+
+        export_classement.insert(
+            0,
+            "Rang",
+            range(1, len(export_classement) + 1)
+        )
+        export_classement.insert(
+            1,
+            "Année",
+            annee_classement
+        )
+        export_classement.insert(
+            2,
+            "Niveau géographique",
+            nom_niveau.capitalize()
+        )
+
         afficher_telechargement(
-            comparaison,
+            export_classement,
             (
                 f"naissances_{nom_fichier}_"
                 f"{indicateur_technique}_"
@@ -839,8 +917,20 @@ def afficher_territoires(
                 hide_index=True
             )
 
+        export_comparaison = evolution.rename(
+            columns={
+                "Nombre de naissances": indicateur_affiche
+            }
+        ).copy()
+
+        export_comparaison.insert(
+            1,
+            "Niveau géographique",
+            nom_niveau.capitalize()
+        )
+
         afficher_telechargement(
-            evolution,
+            export_comparaison,
             (
                 f"comparaison_naissances_"
                 f"{nom_fichier}_"

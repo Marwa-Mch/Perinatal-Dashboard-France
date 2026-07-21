@@ -1,22 +1,33 @@
 import streamlit as st
 
+from src.models.session import get_current_user
+
 
 def load_view():
     """
     Page d'accueil de l'application.
-
-    Cette vue présente :
-    - le contexte du projet ;
-    - les objectifs ;
-    - les indicateurs analysés ;
-    - les principales technologies utilisées.
     """
 
     st.title("Perinatal Dashboard France")
 
+    utilisateur_connecte = get_current_user()
+
+    if utilisateur_connecte:
+        st.success(
+            f"Vous êtes connecté avec le compte : "
+            f"{utilisateur_connecte}"
+        )
+    else:
+        st.info(
+            "Vous consultez actuellement "
+            "l'application en mode visiteur."
+        )
+
     st.subheader(
-        "Tableau de bord interactif des indicateurs de santé périnatale"
+        "Tableau de bord interactif des indicateurs "
+        "de santé périnatale"
     )
+
 
     st.markdown(
         """

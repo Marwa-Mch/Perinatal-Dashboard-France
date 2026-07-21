@@ -1,82 +1,222 @@
+# =====================================================
+# OUTILS DE L'APPLICATION
+# =====================================================
+
+from pathlib import Path
+
 import streamlit as st
-import base64
-from streamlit.components.v1 import html
 
-from PATHS import NAVBAR_PATHS, SETTINGS
+from src.models.session import get_current_user
+from src.router import redirect
 
+
+# Racine du projet
+BASE_DIR = Path(__file__).resolve().parent
+
+# Chemin du fichier CSS
+CSS_PATH = BASE_DIR / "src" / "assets" / "styles.css"
+
+
+# =====================================================
+# CHARGEMENT DU CSS
+# =====================================================
 
 def inject_custom_css():
-    with open('src/assets/styles.css') as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    """
+    Charge le fichier CSS personnalisé de l'application.
+    """
 
+    if CSS_PATH.exists():
+
+        with open(
+            CSS_PATH,
+            "r",
+            encoding="utf-8"
+        ) as fichier_css:
+
+            st.markdown(
+                f"<style>{fichier_css.read()}</style>",
+                unsafe_allow_html=True
+            )
+
+    else:
+
+        st.warning(
+            "Le fichier de style CSS est introuvable."
+        )
+
+
+# =====================================================
+# BOUTON DE NAVIGATION
+# =====================================================
+
+def navigation_button(
+    label: str,
+    route: str,
+    key: str
+):
+    """
+    Crée un bouton qui redirige vers une page
+    sans quitter la session Streamlit.
+    """
+
+    if st.button(
+        label,
+        key=key,
+        use_container_width=True
+    ):
+        redirect(
+            route,
+            reload=True
+        )
+
+
+# =====================================================
+# BARRE DE NAVIGATION
+# =====================================================
 
 def navbar_component():
-    with open("src/assets/images/settings.png", "rb") as image_file:
-        image_as_base64 = base64.b64encode(image_file.read())
+    """
+    Affiche une barre de navigation native Streamlit.
 
-    navbar_items = ''
-    for key, value in NAVBAR_PATHS.items():
-        navbar_items += (f'<li><a class="navitem" href="/?nav=%2F{value}"><span class="nav-label">{key}</span></a></li>')
+    Cette navigation conserve st.session_state,
+    contrairement aux anciens liens HTML qui pouvaient
+    recréer une nouvelle session.
+    """
 
-    settings_items = ''
-    for key, value in SETTINGS.items():
-        settings_items += (
-            f'<a href="/?nav={value}" class="settingsNav">{key}</a>')
+    utilisateur_connecte = get_current_user()
 
-    component = rf'''
-            <div class="navbar-wrap">
-                <nav class="navbar" id="navbar">
-                    <div class="nav-container">
-                        <div class="brand">
-                            <a href="/?nav=%2Fhome" class="brand-link">🚀 DataRockstars</a>
-                        </div>
-                        <ul class="navlist">
-                            {navbar_items}
-                        </ul>
-                        <div class="dropdown" id="settingsDropDown">
-                            <img class="dropbtn" alt="settings" src="data:image/png;base64, {image_as_base64.decode("utf-8")}"/>
-                            <div id="myDropdown" class="dropdown-content">
-                                {settings_items}
-                            </div>
-                        </div>
-                    </div>
-                </nav>
+    # Style spécifique des boutons de navigation
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stHorizontalBlock"] {
+            align-items: center;
+        }
+
+        div.stButton > button {
+            min-height: 42px;
+            white-space: nowrap;
+        }
+
+        .navbar-brand {
+            font-size: 1.15rem;
+            font-weight: 700;
+            padding-top: 8px;
+            white-space: nowrap;
+        }
+
+        .navbar-user {
+            text-align: right;
+            font-size: 0.78rem;
+            margin-top: -4px;
+            margin-bottom: 8px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    colonnes = st.columns(
+        [1.8, 1, 1.35, 1.05, 1.35, 1, 1.1, 1.15],
+        gap="small"
+    )
+
+    # Nom de l'application
+    with colonnes[0]:
+
+        st.markdown(
+            """
+            <div class="navbar-brand">
+                👶 Perinatal Dashboard
             </div>
-            '''
-    st.markdown(component, unsafe_allow_html=True)
-    js = '''
-    <script>
-        // navbar elements
-        var navigationTabs = window.parent.document.getElementsByClassName("navitem");
-        var cleanNavbar = function(navigation_element) {
-            navigation_element.removeAttribute('target')
-        }
-        
-        for (var i = 0; i < navigationTabs.length; i++) {
-            cleanNavbar(navigationTabs[i]);
-        }
-        
-        // Dropdown hide / show
-        var dropdown = window.parent.document.getElementById("settingsDropDown");
-        dropdown.onclick = function() {
-            var dropWindow = window.parent.document.getElementById("myDropdown");
-            if (dropWindow.style.opacity == "1"){
-                dropWindow.style.opacity = "0";
-                dropWindow.style.pointerEvents = "none";
-            } else {
-                dropWindow.style.opacity = "1";
-                dropWindow.style.pointerEvents = "auto";
-            }
-        };
-        
-        var settingsNavs = window.parent.document.getElementsByClassName("settingsNav");
-        var cleanSettings = function(navigation_element) {
-            navigation_element.removeAttribute('target')
-        }
-        
-        for (var i = 0; i < settingsNavs.length; i++) {
-            cleanSettings(settingsNavs[i]);
-        }
-    </script>
-    '''
-    html(js)
+            """,
+            unsafe_allow_html=True
+        )
+
+    # Accueil
+    with colonnes[1]:
+
+        navigation_button(
+            label="Accueil",
+            route="/home",
+            key="nav_home"
+        )
+
+    # Jeu de données
+    with colonnes[2]:
+
+        navigation_button(
+            label="Données",
+            route="/dataset",
+            key="nav_dataset"
+        )
+
+    # Naissances
+    with colonnes[3]:
+
+        navigation_button(
+            label="Naissances",
+            route="/naissances",
+            key="nav_naissances"
+        )
+
+    # Mortinatalité
+    with colonnes[4]:
+
+        navigation_button(
+            label="Mortinatalité",
+            route="/mortinatalite",
+            key="nav_mortinatalite"
+        )
+
+    # Analyse
+    with colonnes[5]:
+
+        navigation_button(
+            label="Analyse",
+            route="/analysis",
+            key="nav_analysis"
+        )
+
+    # Conclusion
+    with colonnes[6]:
+
+        navigation_button(
+            label="Conclusion",
+            route="/conclusion",
+            key="nav_conclusion"
+        )
+
+    # Connexion ou déconnexion
+    with colonnes[7]:
+
+        if utilisateur_connecte:
+
+            navigation_button(
+                label="Déconnexion",
+                route="/logout",
+                key="nav_logout"
+            )
+
+        else:
+
+            navigation_button(
+                label="Connexion",
+                route="/login",
+                key="nav_login"
+            )
+
+    # Affichage facultatif de l'utilisateur connecté
+    if utilisateur_connecte:
+
+        st.markdown(
+            (
+                '<div class="navbar-user">'
+                f'Connecté : {utilisateur_connecte}'
+                "</div>"
+            ),
+            unsafe_allow_html=True
+        )
+
+    st.divider()

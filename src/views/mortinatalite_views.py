@@ -2,6 +2,9 @@
 # PAGE MORTINATALITÉ — PERINATAL DASHBOARD FRANCE
 # =====================================================
 
+from io import BytesIO
+import zipfile
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -296,8 +299,20 @@ def afficher_telechargement(
 
     if utilisateur_connecte:
 
-        contenu_csv = dataframe.to_csv(
-            index=False
+        dataframe_export = dataframe.copy()
+
+        colonnes_decimales = dataframe_export.select_dtypes(
+            include="float"
+        ).columns
+
+        dataframe_export[colonnes_decimales] = (
+            dataframe_export[colonnes_decimales].round(2)
+        )
+
+        contenu_csv = dataframe_export.to_csv(
+            index=False,
+            sep=";",
+            decimal=","
         ).encode("utf-8-sig")
 
         st.success(
@@ -330,6 +345,145 @@ def afficher_telechargement(
             key=f"connexion_{cle_bouton}",
             use_container_width=True
         ):
+            st.session_state[
+                "page_apres_connexion"
+            ] = "/mortinatalite"
+
+            redirect(
+                "/login",
+                reload=True
+            )
+
+
+def afficher_telechargement_comparaison(
+    evolution: pd.DataFrame,
+    tableau_synthese: pd.DataFrame,
+    niveau_geographique: str,
+    indicateur_affiche: str,
+    annee_debut: int,
+    annee_fin: int,
+    nom_fichier: str,
+    cle_bouton: str
+):
+    """
+    Télécharge un dossier ZIP contenant deux fichiers :
+
+    1. les données annuelles utilisées pour construire la courbe ;
+    2. la synthèse calculée pour la période sélectionnée.
+    """
+
+    st.divider()
+    st.subheader("Téléchargement des résultats filtrés")
+
+    utilisateur_connecte = get_current_user()
+
+    if utilisateur_connecte:
+
+        donnees_courbe = evolution.copy()
+
+        donnees_courbe.insert(
+            1,
+            "Niveau géographique",
+            niveau_geographique
+        )
+
+        donnees_courbe = donnees_courbe.rename(
+            columns={
+                "Taux": indicateur_affiche
+            }
+        )
+
+        donnees_courbe[indicateur_affiche] = (
+            donnees_courbe[indicateur_affiche].round(2)
+        )
+
+        synthese_export = tableau_synthese.copy()
+
+        synthese_export.insert(
+            0,
+            "Période",
+            f"{annee_debut}-{annee_fin}"
+        )
+
+        synthese_export.insert(
+            1,
+            "Niveau géographique",
+            niveau_geographique
+        )
+
+        colonnes_taux = [
+            "Taux au début",
+            "Taux à la fin",
+            "Variation en points"
+        ]
+
+        for colonne in colonnes_taux:
+            if colonne in synthese_export.columns:
+                synthese_export[colonne] = (
+                    synthese_export[colonne].round(2)
+                )
+
+        memoire_zip = BytesIO()
+
+        with zipfile.ZipFile(
+            memoire_zip,
+            mode="w",
+            compression=zipfile.ZIP_DEFLATED
+        ) as archive:
+
+            archive.writestr(
+                "01_donnees_courbe.csv",
+                donnees_courbe.to_csv(
+                    index=False,
+                    sep=";",
+                    decimal=","
+                ).encode("utf-8-sig")
+            )
+
+            archive.writestr(
+                "02_synthese_periode.csv",
+                synthese_export.to_csv(
+                    index=False,
+                    sep=";",
+                    decimal=","
+                ).encode("utf-8-sig")
+            )
+
+        st.success(
+            f"Utilisateur connecté : {utilisateur_connecte}"
+        )
+
+        st.info(
+            "Le fichier ZIP contient les données exactes de la courbe "
+            "et le tableau de synthèse de la période sélectionnée."
+        )
+
+        st.download_button(
+            label="Télécharger la courbe et la synthèse",
+            data=memoire_zip.getvalue(),
+            file_name=nom_fichier,
+            mime="application/zip",
+            key=cle_bouton,
+            use_container_width=True
+        )
+
+    else:
+
+        st.info(
+            "La consultation des résultats est libre. "
+            "Une connexion est nécessaire uniquement "
+            "pour télécharger les résultats filtrés."
+        )
+
+        if st.button(
+            "Se connecter pour télécharger",
+            key=f"connexion_{cle_bouton}",
+            use_container_width=True
+        ):
+            st.session_state[
+                "page_apres_connexion"
+            ] = "/mortinatalite"
+
             redirect(
                 "/login",
                 reload=True
@@ -740,8 +894,13 @@ def afficher_territoires(
             f"Choisissez les {nom_niveau_pluriel} à comparer",
             options=territoires_disponibles,
             default=territoires_par_defaut,
-            max_selections=5,
             key=f"comparaison_mortinatalite_{nom_fichier}"
+        )
+
+        st.caption(
+            "Vous pouvez sélectionner autant de territoires que nécessaire. "
+            "Pour garder une courbe lisible, une sélection raisonnable "
+            "reste toutefois préférable."
         )
 
         if not territoires_selectionnes:
@@ -866,15 +1025,23 @@ def afficher_territoires(
                 hide_index=True
             )
 
-        afficher_telechargement(
-            evolution,
-            (
+        afficher_telechargement_comparaison(
+            evolution=evolution,
+            tableau_synthese=tableau_synthese,
+            niveau_geographique=niveau_geographique,
+            indicateur_affiche=indicateur_affiche,
+            annee_debut=annee_debut,
+            annee_fin=annee_fin,
+            nom_fichier=(
                 f"comparaison_mortinatalite_"
                 f"{nom_fichier}_"
                 f"{indicateur_technique}_"
-                f"{annee_debut}_{annee_fin}.csv"
+                f"{annee_debut}_{annee_fin}.zip"
             ),
-            f"download_comparaison_mortinatalite_{nom_fichier}"
+            cle_bouton=(
+                f"download_comparaison_mortinatalite_"
+                f"{nom_fichier}"
+            )
         )
 
 

@@ -2,16 +2,12 @@
 # MODEL — SESSION ET AUTHENTIFICATION
 # =====================================================
 
-from pathlib import Path
 import hashlib
-import json
 import time
 
+import streamlit as st
+
 from src.models.database import Database
-
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-SESSION_PATH = BASE_DIR / "session.json"
 
 
 class Session:
@@ -27,9 +23,6 @@ class Session:
     def hash_password(self) -> str:
         """
         Transforme le mot de passe en empreinte SHA-256.
-
-        Pour une application de production, il serait préférable
-        d'utiliser bcrypt ou Argon2 avec un sel.
         """
 
         return hashlib.sha256(
@@ -135,32 +128,15 @@ class Session:
 
     def persist(self):
         """
-        Enregistre l'adresse e-mail de la session courante.
+        Enregistre l'utilisateur dans la session Streamlit.
         """
 
-        data = {"email": self.email}
+        st.session_state["email"] = self.email
 
-        with open(SESSION_PATH, "w", encoding="utf-8") as outfile:
-            json.dump(data, outfile)
 
 def get_current_user():
     """
-    Retourne l'e-mail de l'utilisateur connecté.
-    Retourne une chaîne vide si personne n'est connecté.
+    Retourne l'utilisateur connecté dans cette session.
     """
 
-    if not SESSION_PATH.exists():
-        return ""
-
-    try:
-        with open(
-            SESSION_PATH,
-            "r",
-            encoding="utf-8"
-        ) as fichier:
-            data = json.load(fichier)
-
-        return data.get("email", "").strip()
-
-    except (json.JSONDecodeError, OSError):
-        return ""
+    return st.session_state.get("email", "")

@@ -1,11 +1,6 @@
-from pathlib import Path
-import json
 
 from src.models.session import Session
 
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-SESSION_PATH = BASE_DIR / "session.json"
 
 
 def auth(login: str, mdp: str) -> dict:
@@ -38,11 +33,12 @@ def auth(login: str, mdp: str) -> dict:
 
 def logout() -> dict:
     """
-    Efface la session courante.
+    Déconnecte l'utilisateur de la session Streamlit.
     """
 
-    with open(SESSION_PATH, "w", encoding="utf-8") as outfile:
-        json.dump({"email": ""}, outfile)
+    import streamlit as st
+
+    st.session_state["email"] = ""
 
     return {
         "success": True,

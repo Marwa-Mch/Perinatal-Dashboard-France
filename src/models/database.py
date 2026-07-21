@@ -18,6 +18,7 @@ class Database:
 
     def __init__(self) -> None:
         self.__db = sqlite3.connect(DATABASE_PATH)
+        self.setup()
 
     def setup(self):
         """

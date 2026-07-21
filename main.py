@@ -1,4 +1,4 @@
-import json
+#import json
 
 import streamlit as st
 
@@ -27,8 +27,8 @@ utl.navbar_component()
 
 def navigation():
     # Loading Cookies
-    with open("session.json", encoding="utf-8" ) as json_file:
-        SESSION = json.load(json_file)
+    #with open("session.json", encoding="utf-8" ) as json_file:
+        #SESSION = json.load(json_file)
 
     # Non user in cookies
     # Aucun utilisateur connecté
