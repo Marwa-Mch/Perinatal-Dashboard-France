@@ -54,7 +54,9 @@ Plusieurs analyses exploratoires et visualisations ont été réalisées :
 
 Une application interactive développée avec Streamlit permet d'explorer les données et les principaux résultats de l'analyse.
 
-Le lien vers l'application sera ajouté ici après vérification du déploiement.
+### 🌐 Application en ligne
+
+👉 [Accéder au tableau de bord interactif](https://perinatal-dashboard-france-6lwbjdx4awapp8vhhdawde.streamlit.app/)
 
 ## Structure du projet
 
