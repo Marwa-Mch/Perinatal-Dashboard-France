@@ -60,7 +60,13 @@ Une application interactive développée avec Streamlit permet d'explorer les do
 
 ## Structure du projet
 
-Le projet est organisé en plusieurs composants permettant de séparer les données, les traitements, les visualisations et l'interface Streamlit.
+Le projet est organisé selon une architecture MVC (Model – View – Controller), afin de séparer la gestion des données, la logique de l'application et l'interface utilisateur.
+
+- **Model (`src/models/`)** : gestion de la base de données SQLite, accès aux données et traitements liés aux indicateurs de naissances et de mortinatalité.
+- **Controller (`src/controllers/`)** : assure la liaison entre les modèles et les vues et gère la logique associée aux analyses et aux différents indicateurs.
+- **View (`src/views/`)** : contient les différentes pages de l'application Streamlit et assure la présentation des données, des indicateurs et des visualisations interactives.
+
+Cette architecture permet de séparer les responsabilités, d'améliorer la lisibilité du code et de faciliter la maintenance et l'évolution de l'application.
 
 ## Compétences mobilisées
 
@@ -69,6 +75,7 @@ Le projet est organisé en plusieurs composants permettant de séparer les donn�
 - Manipulation de données avec Pandas
 - Requêtes SQL
 - Création de visualisations
+- Structuration d'une application selon une architecture MVC
 - Développement d'un tableau de bord interactif
 - Utilisation de Git et GitHub
 
