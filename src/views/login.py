@@ -52,18 +52,20 @@ def load_view():
         key="login_password"
     )
 
+    st.caption("À l’inscription : mot de passe d’au moins 12 caractères.")
+
     col1, col2 = st.columns(2, gap="small")
 
     with col1:
         log_in_button = st.button(
             "Se connecter",
-            use_container_width=True
+            width="stretch"
         )
 
     with col2:
         sign_up_button = st.button(
             "S'inscrire",
-            use_container_width=True
+            width="stretch"
         )
 
     if log_in_button:

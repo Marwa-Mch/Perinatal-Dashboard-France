@@ -1,3 +1,4 @@
+import logging
 # =====================================================
 # PAGE DATASET — PRÉSENTATION DES DONNÉES
 # =====================================================
@@ -86,7 +87,7 @@ def load_view():
             "Un ou plusieurs fichiers de données sont introuvables."
         )
 
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     except Exception as erreur:
@@ -95,7 +96,7 @@ def load_view():
             "Les données n'ont pas pu être chargées."
         )
 
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     # =====================================================
@@ -160,7 +161,7 @@ def load_view():
 
         st.dataframe(
             dataframe_naissances.head(5),
-            use_container_width=True
+            width="stretch"
         )
 
         st.caption(
@@ -241,7 +242,7 @@ def load_view():
 
         st.dataframe(
             dataframe_mortinatalite.head(5),
-            use_container_width=True
+            width="stretch"
         )
 
         st.caption(

@@ -1,3 +1,5 @@
+
+import html
 # =====================================================
 # OUTILS DE L'APPLICATION
 # =====================================================
@@ -63,7 +65,7 @@ def navigation_button(
     if st.button(
         label,
         key=key,
-        use_container_width=True
+        width="stretch"
     ):
         redirect(
             route,
@@ -77,119 +79,119 @@ def navigation_button(
 
 def navbar_component():
     """
-    Affiche une barre de navigation native Streamlit.
+    Affiche le titre et les boutons de navigation
+    sur des lignes distinctes.
 
-    Cette navigation conserve st.session_state,
-    contrairement aux anciens liens HTML qui pouvaient
-    recréer une nouvelle session.
+    La navigation utilise les boutons natifs Streamlit
+    afin de conserver la session utilisateur.
     """
 
     utilisateur_connecte = get_current_user()
 
-    # Style spécifique des boutons de navigation
+    # Style limité aux éléments de l'en-tête
     st.markdown(
         """
         <style>
-        div[data-testid="stHorizontalBlock"] {
-            align-items: center;
+        .perinatal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
         }
 
-        div.stButton > button {
-            min-height: 42px;
-            white-space: nowrap;
-        }
-
-        .navbar-brand {
-            font-size: 1.15rem;
+        .perinatal-title {
+            font-size: 1.7rem;
             font-weight: 700;
-            padding-top: 8px;
-            white-space: nowrap;
+            line-height: 1.4;
+            margin-bottom: 0.3rem;
         }
 
-        .navbar-user {
-            text-align: right;
-            font-size: 0.78rem;
-            margin-top: -4px;
-            margin-bottom: 8px;
+        .perinatal-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.75;
         }
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    colonnes = st.columns(
-        [1.8, 1, 1.35, 1.05, 1.35, 1, 1.1, 1.15],
+    # =================================================
+    # 1. TITRE DE L'APPLICATION
+    # =================================================
+
+    st.markdown(
+        """
+        <div class="perinatal-header">
+            <div class="perinatal-title">
+                📊 Tableau de bord périnatal
+            </div>
+            <div class="perinatal-subtitle">
+                Indicateurs de santé périnatale en France
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # =================================================
+    # 2. PREMIÈRE LIGNE DE NAVIGATION
+    # =================================================
+
+    colonnes_1 = st.columns(
+        4,
         gap="small"
     )
 
-    # Nom de l'application
-    with colonnes[0]:
-
-        st.markdown(
-            """
-            <div class="navbar-brand">
-                👶 Perinatal Dashboard
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # Accueil
-    with colonnes[1]:
-
+    with colonnes_1[0]:
         navigation_button(
             label="Accueil",
             route="/home",
             key="nav_home"
         )
 
-    # Jeu de données
-    with colonnes[2]:
-
+    with colonnes_1[1]:
         navigation_button(
             label="Données",
             route="/dataset",
             key="nav_dataset"
         )
 
-    # Naissances
-    with colonnes[3]:
-
+    with colonnes_1[2]:
         navigation_button(
             label="Naissances",
             route="/naissances",
             key="nav_naissances"
         )
 
-    # Mortinatalité
-    with colonnes[4]:
-
+    with colonnes_1[3]:
         navigation_button(
             label="Mortinatalité",
             route="/mortinatalite",
             key="nav_mortinatalite"
         )
 
-    # Analyse
-    with colonnes[5]:
+    # =================================================
+    # 3. DEUXIÈME LIGNE DE NAVIGATION
+    # =================================================
 
+    colonnes_2 = st.columns(
+        4,
+        gap="small"
+    )
+
+    with colonnes_2[0]:
         navigation_button(
             label="Analyse",
             route="/analysis",
             key="nav_analysis"
         )
 
-    # Conclusion
-    with colonnes[6]:
-
+    with colonnes_2[1]:
         navigation_button(
             label="Conclusion",
             route="/conclusion",
             key="nav_conclusion"
         )
 
-    # Connexion ou déconnexion
-    with colonnes[7]:
+    with colonnes_2[2]:
 
         if utilisateur_connecte:
 
@@ -207,16 +209,24 @@ def navbar_component():
                 key="nav_login"
             )
 
-    # Affichage facultatif de l'utilisateur connecté
+    # =================================================
+    # 4. UTILISATEUR CONNECTÉ
+    # =================================================
+
     if utilisateur_connecte:
 
         st.markdown(
             (
-                '<div class="navbar-user">'
-                f'Connecté : {utilisateur_connecte}'
+                '<div style="text-align:right;'
+                'font-size:0.85rem;margin-top:0.5rem;">'
+                f'Connecté : {html.escape(str(utilisateur_connecte))}'
                 "</div>"
             ),
             unsafe_allow_html=True
         )
+
+    # =================================================
+    # 5. SÉPARATION AVEC LE CONTENU
+    # =================================================
 
     st.divider()

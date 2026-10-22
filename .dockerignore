@@ -1,0 +1,12 @@
+.git
+.venv
+venv
+__pycache__
+.pytest_cache
+.coverage
+reports
+backups
+data/private
+data/users.db*
+session.json
+*.zip

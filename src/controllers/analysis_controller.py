@@ -1,109 +1,37 @@
-# =====================================================
-# CONTROLLER — ANALYSES TECHNIQUES
-# =====================================================
+"""Sélections validées et requêtes sur le modèle relationnel normalisé."""
+from numbers import Integral
+from src.models.analysis_model import lire_table_sqlite, executer_requete_sql
+INDICATORS = {"mortinatalite_totale", "mortinatalite_spontanee", "img"}
 
-from src.models.analysis_model import (
-    lire_table_sqlite,
-    executer_requete_sql
-)
+
+def validate_selection(annee, indicateur, limite=10):
+    if isinstance(annee, bool) or not isinstance(annee, Integral) or not 2012 <= annee <= 2023:
+        raise ValueError("L’année doit être un entier entre 2012 et 2023.")
+    if indicateur not in INDICATORS:
+        raise ValueError("Indicateur non autorisé.")
+    if isinstance(limite, bool) or not isinstance(limite, Integral) or not 1 <= limite <= 100:
+        raise ValueError("Le nombre de territoires doit être compris entre 1 et 100.")
 
 
 def get_mortinatalite_sql():
-    """
-    Charge les trois tables de mortinatalité depuis SQLite.
-    """
-
-    france = lire_table_sqlite(
-        "mortinatalite_france"
-    )
-
-    regions = lire_table_sqlite(
-        "mortinatalite_regions"
-    )
-
-    drom = lire_table_sqlite(
-        "mortinatalite_drom"
-    )
-
-    return france, regions, drom
+    return tuple(lire_table_sqlite(f"mortinatalite_{level}") for level in ("france", "regions", "drom"))
 
 
-def get_requete_classement_regions(
-    annee: int,
-    indicateur: str,
-    limite: int = 10
-):
-    """
-    Retourne la requête SQL et son résultat pour
-    le classement régional.
-    """
-
-    indicateurs_autorises = {
-        "mortinatalite_totale",
-        "mortinatalite_spontanee",
-        "img"
-    }
-
-    if indicateur not in indicateurs_autorises:
-        raise ValueError(
-            "Indicateur non autorisé."
-        )
-
-    if annee < 2012 or annee > 2023:
-        raise ValueError(
-            "Année non autorisée."
-        )
-
-    colonne = f"{annee}_{indicateur}"
-
-    requete = f"""
-        SELECT
-            zone_geographique AS region,
-            "{colonne}" AS valeur
-        FROM mortinatalite_regions
-        WHERE "{colonne}" IS NOT NULL
-        ORDER BY "{colonne}" DESC
-        LIMIT {int(limite)}
-    """
-
-    resultat = executer_requete_sql(
-        requete
-    )
-
-    return requete, resultat
+def get_requete_classement_regions(annee, indicateur, limite=10):
+    validate_selection(annee, indicateur, limite)
+    query = """SELECT t.name AS region, o.value AS valeur
+        FROM observations o JOIN territories t ON t.id = o.territory_id
+        WHERE t.level = 'regions' AND o.year = ? AND o.indicator_code = ?
+          AND o.value IS NOT NULL
+        ORDER BY o.value DESC, t.name ASC LIMIT ?"""
+    return query, executer_requete_sql(query, (int(annee), indicateur, int(limite)))
 
 
-def get_statistiques_regions(
-    annee: int,
-    indicateur: str
-):
-    """
-    Calcule en SQL les principales statistiques régionales.
-    """
-
-    indicateurs_autorises = {
-        "mortinatalite_totale",
-        "mortinatalite_spontanee",
-        "img"
-    }
-
-    if indicateur not in indicateurs_autorises:
-        raise ValueError(
-            "Indicateur non autorisé."
-        )
-
-    colonne = f"{annee}_{indicateur}"
-
-    requete = f"""
-        SELECT
-            COUNT("{colonne}") AS nombre_regions,
-            AVG("{colonne}") AS moyenne,
-            MIN("{colonne}") AS minimum,
-            MAX("{colonne}") AS maximum
-        FROM mortinatalite_regions
-        WHERE "{colonne}" IS NOT NULL
-    """
-
-    return requete, executer_requete_sql(
-        requete
-    )
+def get_statistiques_regions(annee, indicateur):
+    validate_selection(annee, indicateur)
+    query = """SELECT COUNT(o.value) AS nombre_regions, AVG(o.value) AS moyenne,
+        MIN(o.value) AS minimum, MAX(o.value) AS maximum
+        FROM observations o JOIN territories t ON t.id = o.territory_id
+        WHERE t.level = 'regions' AND o.year = ? AND o.indicator_code = ?
+          AND o.value IS NOT NULL"""
+    return query, executer_requete_sql(query, (int(annee), indicateur))

@@ -1,3 +1,4 @@
+import logging
 # =====================================================
 # PAGE ANALYSE — TABLEAU DE BORD DÉCISIONNEL
 # =====================================================
@@ -17,7 +18,7 @@ from src.controllers.analysis_controller import (
     get_requete_classement_regions,
     get_statistiques_regions
 )
-from src.models.session import get_current_user
+from src.models.session import get_current_user, protected_download_button
 from src.router import redirect
 
 
@@ -471,13 +472,13 @@ def afficher_telechargement(
             f"Utilisateur connecté : {utilisateur}"
         )
 
-        st.download_button(
+        protected_download_button(
             label="Télécharger les résultats affichés",
             data=contenu,
             file_name=nom_fichier,
             mime="text/csv",
             key=cle,
-            use_container_width=True
+            width="stretch"
         )
 
     else:
@@ -490,7 +491,7 @@ def afficher_telechargement(
         if st.button(
             "Se connecter pour télécharger",
             key=f"login_{cle}",
-            use_container_width=True
+            width="stretch"
         ):
             st.session_state[
                 "page_apres_connexion"
@@ -554,7 +555,7 @@ def load_view():
             "Impossible de charger les données nécessaires."
         )
 
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     annees_naissances = obtenir_annees_naissances(
@@ -838,7 +839,7 @@ def load_view():
 
                 st.plotly_chart(
                     figure_naissances,
-                    use_container_width=True
+                    width="stretch"
                 )
 
             with col_droite:
@@ -861,7 +862,7 @@ def load_view():
 
                 st.plotly_chart(
                     figure_mortinatalite,
-                    use_container_width=True
+                    width="stretch"
                 )
 
             # =================================================
@@ -919,7 +920,7 @@ def load_view():
 
             st.plotly_chart(
                 figure_base,
-                use_container_width=True
+                width="stretch"
             )
 
             st.info(
@@ -963,7 +964,7 @@ def load_view():
 
             st.plotly_chart(
                 figure_correlation,
-                use_container_width=True
+                width="stretch"
             )
 
             st.metric(
@@ -987,7 +988,7 @@ def load_view():
 
             st.dataframe(
                 donnees_croisees,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True
             )
 
@@ -1120,7 +1121,7 @@ def load_view():
 
             st.plotly_chart(
                 figure_scatter,
-                use_container_width=True
+                width="stretch"
             )
 
             correlation_regionale = (
@@ -1148,7 +1149,7 @@ def load_view():
                     "Taux de mortinatalité",
                     ascending=False
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True
             )
 
@@ -1222,7 +1223,7 @@ def load_view():
 
             st.plotly_chart(
                 figure_boxplot,
-                use_container_width=True
+                width="stretch"
             )
 
             st.markdown(
@@ -1271,7 +1272,7 @@ def load_view():
 
             st.plotly_chart(
                 figure_heatmap,
-                use_container_width=True
+                width="stretch"
             )
 
             export_heatmap = heatmap.rename(
@@ -1347,7 +1348,7 @@ def load_view():
                 "Impossible d'exécuter les requêtes SQL."
             )
 
-            st.code(str(erreur))
+            logging.getLogger(__name__).exception("Erreur de traitement des données")
             return
 
         st.subheader(
@@ -1361,7 +1362,7 @@ def load_view():
 
         st.dataframe(
             resultat_classement,
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -1388,7 +1389,7 @@ def load_view():
 
             st.plotly_chart(
                 figure_sql,
-                use_container_width=True
+                width="stretch"
             )
 
         st.subheader(
@@ -1402,7 +1403,7 @@ def load_view():
 
         st.dataframe(
             resultat_statistiques,
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 

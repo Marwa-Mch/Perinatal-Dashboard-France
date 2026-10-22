@@ -43,7 +43,7 @@ def lire_table_sqlite(nom_table: str) -> pd.DataFrame:
             f"Table non autorisée : {nom_table}"
         )
 
-    connexion = sqlite3.connect(DATABASE_PATH)
+    connexion = sqlite3.connect(DATABASE_PATH.resolve().as_uri() + "?mode=ro", uri=True)
 
     try:
         requete = f"SELECT * FROM {nom_table}"
@@ -59,7 +59,7 @@ def lire_table_sqlite(nom_table: str) -> pd.DataFrame:
 
 @st.cache_data
 def executer_requete_sql(
-    requete: str
+    requete: str, parameters=()
 ) -> pd.DataFrame:
     """
     Exécute une requête SQL de lecture.
@@ -78,12 +78,13 @@ def executer_requete_sql(
             "Seules les requêtes SELECT sont autorisées."
         )
 
-    connexion = sqlite3.connect(DATABASE_PATH)
+    connexion = sqlite3.connect(DATABASE_PATH.resolve().as_uri() + "?mode=ro", uri=True)
 
     try:
         return pd.read_sql_query(
             requete,
-            connexion
+            connexion,
+            params=parameters
         )
 
     finally:

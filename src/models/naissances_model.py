@@ -1,3 +1,4 @@
+from src.models.data_validation import validate_frame
 # =====================================================
 # MODEL — DONNÉES DE NAISSANCES
 # =====================================================
@@ -39,7 +40,7 @@ def charger_naissances_france():
     fichier = PROCESSED_DATA_DIR / "naissances_france.csv"
     verifier_fichiers([fichier])
 
-    return pd.read_csv(fichier)
+    return validate_frame(pd.read_csv(fichier), "naissances")
 
 
 @st.cache_data
@@ -51,7 +52,7 @@ def charger_naissances_regions():
     fichier = PROCESSED_DATA_DIR / "naissances_regions.csv"
     verifier_fichiers([fichier])
 
-    return pd.read_csv(fichier)
+    return validate_frame(pd.read_csv(fichier), "naissances")
 
 
 @st.cache_data
@@ -63,4 +64,4 @@ def charger_naissances_departements():
     fichier = PROCESSED_DATA_DIR / "naissances_departements.csv"
     verifier_fichiers([fichier])
 
-    return pd.read_csv(fichier)
+    return validate_frame(pd.read_csv(fichier), "naissances")

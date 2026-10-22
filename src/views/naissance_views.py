@@ -1,3 +1,4 @@
+import logging
 # =====================================================
 # PAGE NAISSANCES — PERINATAL DASHBOARD FRANCE
 # =====================================================
@@ -9,7 +10,7 @@ import plotly.express as px
 import streamlit as st
 
 from src.controllers.naissances_controller import get_data_naissances
-from src.models.session import get_current_user
+from src.models.session import get_current_user, protected_download_button
 from src.router import redirect
 
 
@@ -99,6 +100,8 @@ def preparer_evolution_france(
     Année | Nombre de naissances
     """
 
+    if dataframe.empty:
+        return pd.DataFrame(columns=["Année", "Nombre de naissances"])
     annees = obtenir_annees(dataframe)
     resultats = []
 
@@ -121,7 +124,7 @@ def preparer_evolution_france(
             }
         )
 
-    resultat = pd.DataFrame(resultats)
+    resultat = pd.DataFrame(resultats, columns=["Année", "Nombre de naissances"])
 
     return resultat.dropna(
         subset=["Nombre de naissances"]
@@ -334,7 +337,7 @@ def afficher_telechargement(
             f"{utilisateur_connecte}"
         )
 
-        st.download_button(
+        protected_download_button(
             label=(
                 "Télécharger les données affichées "
                 "au format CSV"
@@ -343,7 +346,7 @@ def afficher_telechargement(
             file_name=nom_fichier,
             mime="text/csv",
             key=cle_bouton,
-            use_container_width=True
+            width="stretch"
         )
 
     else:
@@ -357,7 +360,7 @@ def afficher_telechargement(
         if st.button(
             "Se connecter pour télécharger",
             key=f"connexion_{cle_bouton}",
-            use_container_width=True
+            width="stretch"
         ):
             # Mémorise la page Naissances afin d'y revenir
             # automatiquement après la connexion.
@@ -493,7 +496,7 @@ def afficher_france(
 
     st.plotly_chart(
         figure,
-        use_container_width=True
+        width="stretch"
     )
 
     st.markdown(
@@ -514,7 +517,7 @@ def afficher_france(
 
     st.dataframe(
         evolution,
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
 
@@ -724,14 +727,14 @@ def afficher_territoires(
 
         st.plotly_chart(
             figure_barres,
-            use_container_width=True
+            width="stretch"
         )
 
         st.subheader("Tableau du classement")
 
         st.dataframe(
             comparaison,
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -846,7 +849,7 @@ def afficher_territoires(
 
         st.plotly_chart(
             figure_comparaison,
-            use_container_width=True
+            width="stretch"
         )
 
         # Comparaison entre début et fin de période
@@ -893,7 +896,7 @@ def afficher_territoires(
 
         st.dataframe(
             tableau_synthese,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "Valeur début": st.column_config.NumberColumn(
@@ -913,7 +916,7 @@ def afficher_territoires(
         ):
             st.dataframe(
                 evolution,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True
             )
 
@@ -981,7 +984,7 @@ def load_view():
         st.error(
             "Un fichier de naissances est introuvable."
         )
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     except Exception as erreur:
@@ -989,7 +992,7 @@ def load_view():
             "Une erreur est survenue pendant "
             "le chargement des données."
         )
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     annees = obtenir_annees(df_france)

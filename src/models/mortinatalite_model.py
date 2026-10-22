@@ -1,3 +1,4 @@
+from src.models.data_validation import validate_frame
 # =====================================================
 # MODEL — DONNÉES DE MORTINATALITÉ
 # =====================================================
@@ -42,8 +43,8 @@ def load_mortinatalite_data():
             + ", ".join(fichiers_manquants)
         )
 
-    df_france = pd.read_csv(france_path)
-    df_regions = pd.read_csv(regions_path)
-    df_drom = pd.read_csv(drom_path)
+    df_france = validate_frame(pd.read_csv(france_path), "mortinatalite")
+    df_regions = validate_frame(pd.read_csv(regions_path), "mortinatalite")
+    df_drom = validate_frame(pd.read_csv(drom_path), "mortinatalite")
 
     return df_france, df_regions, df_drom 

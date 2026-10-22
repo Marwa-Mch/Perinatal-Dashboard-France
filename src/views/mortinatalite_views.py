@@ -1,3 +1,4 @@
+import logging
 # =====================================================
 # PAGE MORTINATALITÉ — PERINATAL DASHBOARD FRANCE
 # =====================================================
@@ -12,7 +13,7 @@ import streamlit as st
 from src.controllers.mortinatalite_controller import (
     get_data_mortinatalite
 )
-from src.models.session import get_current_user
+from src.models.session import get_current_user, protected_download_button
 from src.router import redirect
 
 
@@ -320,7 +321,7 @@ def afficher_telechargement(
             f"{utilisateur_connecte}"
         )
 
-        st.download_button(
+        protected_download_button(
             label=(
                 "Télécharger les données affichées "
                 "au format CSV"
@@ -329,7 +330,7 @@ def afficher_telechargement(
             file_name=nom_fichier,
             mime="text/csv",
             key=cle_bouton,
-            use_container_width=True
+            width="stretch"
         )
 
     else:
@@ -343,7 +344,7 @@ def afficher_telechargement(
         if st.button(
             "Se connecter pour télécharger",
             key=f"connexion_{cle_bouton}",
-            use_container_width=True
+            width="stretch"
         ):
             st.session_state[
                 "page_apres_connexion"
@@ -458,13 +459,13 @@ def afficher_telechargement_comparaison(
             "et le tableau de synthèse de la période sélectionnée."
         )
 
-        st.download_button(
+        protected_download_button(
             label="Télécharger la courbe et la synthèse",
             data=memoire_zip.getvalue(),
             file_name=nom_fichier,
             mime="application/zip",
             key=cle_bouton,
-            use_container_width=True
+            width="stretch"
         )
 
     else:
@@ -478,7 +479,7 @@ def afficher_telechargement_comparaison(
         if st.button(
             "Se connecter pour télécharger",
             key=f"connexion_{cle_bouton}",
-            use_container_width=True
+            width="stretch"
         ):
             st.session_state[
                 "page_apres_connexion"
@@ -612,7 +613,7 @@ def afficher_france(
 
     st.plotly_chart(
         figure,
-        use_container_width=True
+        width="stretch"
     )
 
     st.markdown(
@@ -676,14 +677,14 @@ def afficher_france(
 
     st.plotly_chart(
         figure_composantes,
-        use_container_width=True
+        width="stretch"
     )
 
     st.subheader("Tableau des résultats")
 
     st.dataframe(
         evolution,
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
 
@@ -849,14 +850,14 @@ def afficher_territoires(
 
         st.plotly_chart(
             figure_barres,
-            use_container_width=True
+            width="stretch"
         )
 
         st.subheader("Tableau du classement")
 
         st.dataframe(
             classement,
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -953,7 +954,7 @@ def afficher_territoires(
 
         st.plotly_chart(
             figure_comparaison,
-            use_container_width=True
+            width="stretch"
         )
 
         # =================================================
@@ -1001,7 +1002,7 @@ def afficher_territoires(
 
         st.dataframe(
             tableau_synthese,
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
             column_config={
                 "Taux au début": st.column_config.NumberColumn(
@@ -1021,7 +1022,7 @@ def afficher_territoires(
         ):
             st.dataframe(
                 evolution,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True
             )
 
@@ -1087,7 +1088,7 @@ def load_view():
         st.error(
             "Un fichier de mortinatalité est introuvable."
         )
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     except Exception as erreur:
@@ -1096,7 +1097,7 @@ def load_view():
             "Une erreur est survenue pendant "
             "le chargement des données."
         )
-        st.code(str(erreur))
+        logging.getLogger(__name__).exception("Erreur de traitement des données")
         return
 
     annees = obtenir_annees(

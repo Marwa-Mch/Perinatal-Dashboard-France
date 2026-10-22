@@ -1,19 +1,14 @@
+"""Initialisation sans compte administrateur ni mot de passe par défaut."""
 from src.models.database import Database
-from src.models.session import Session
+from src.models.build_data import rebuild_database
+from src.config import ANALYSIS_DB
 
-import json 
+def main():
+    if not ANALYSIS_DB.exists():
+        rebuild_database()
+    db = Database()
+    db.close()
+    print("Initialisation terminée. Créez votre compte depuis l’interface.")
 
-db = Database()
-db.setup()
-
-# Initialiser une session administrateur par défaut
-s = Session("admin@datarockstars.ai", "admin")
-s.signin()
-
-# Réinitialiser la session fichier
-data = {
-    "email": ""
-}
-
-with open("session.json", 'w') as outfile:
-    json.dump(data, outfile)
+if __name__ == "__main__":
+    main()

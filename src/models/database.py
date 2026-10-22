@@ -4,10 +4,12 @@
 
 from pathlib import Path
 import sqlite3
+from src.config import RUNTIME_DIR
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-DATABASE_PATH = BASE_DIR / "data" / "users.db"
+LEGACY_PATH = BASE_DIR / "data" / "users.db"
+DATABASE_PATH = LEGACY_PATH if LEGACY_PATH.exists() else RUNTIME_DIR / "users.db"
 
 
 class Database:
@@ -17,7 +19,13 @@ class Database:
     """
 
     def __init__(self) -> None:
-        self.__db = sqlite3.connect(DATABASE_PATH)
+        DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        self.__db = sqlite3.connect(DATABASE_PATH, timeout=10)
+        try:
+            DATABASE_PATH.chmod(0o600)
+        except OSError:
+            pass  # Les droits Windows doivent être configurés sur l'hébergement.
+        self.__db.execute("PRAGMA foreign_keys = ON")
         self.setup()
 
     def setup(self):
@@ -47,6 +55,13 @@ class Database:
             """
         )
 
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS auth_attempts (
+                email TEXT PRIMARY KEY,
+                attempts INTEGER NOT NULL,
+                window_start REAL NOT NULL
+            )
+        """)
         self.commit()
 
     def execute(self, query: str, parameters=()):

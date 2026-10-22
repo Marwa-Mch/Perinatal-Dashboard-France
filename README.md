@@ -1,90 +1,81 @@
 # Indicateurs de santé périnatale en France
 
-## Présentation
+Application Streamlit d’exploration des naissances et de la mortinatalité sur 2012–2023. Projet de Marwa MCHAREK, élaboré à partir du template pédagogique DATAROCKSTARS. Cette version comprend des corrections et ajouts préparés avec une assistance IA ; les choix doivent être compris et vérifiés avant leur présentation au jury.
 
-Ce projet d'analyse de données explore l'évolution de plusieurs indicateurs de santé périnatale en France, notamment les naissances et la mortinatalité.
+## Démarrage sous Windows (terminal PowerShell de VS Code)
 
-Il a été réalisé dans le cadre de ma formation en Data Analyse et constitue une application pratique de Python, SQL, de l'analyse exploratoire des données et de la visualisation interactive.
+Utiliser Python 3.12. Ouvrir le dossier contenant main.py, puis :
 
-## Objectifs
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+.venv\Scripts\python.exe setup.py
+.venv\Scripts\python.exe -m streamlit run main.py
+```
 
-- Étudier l'évolution des naissances en France entre 2012 et 2023
-- Analyser les indicateurs de mortinatalité
-- Comparer les résultats entre différentes régions françaises
-- Explorer plus spécifiquement l'Île-de-France
-- Mettre les résultats à disposition dans un tableau de bord interactif
+Ouvrir http://localhost:8501. Créer un compte depuis Connexion / Inscription. Aucun compte ni mot de passe par défaut n’est fourni.
 
-## Données
+## Linux / macOS
 
-Le projet exploite des données relatives :
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements-lock.txt
+.venv/bin/python setup.py
+.venv/bin/python -m streamlit run main.py
+```
 
-- aux naissances en France, par région et département
-- à la mortinatalité totale
-- à la mortinatalité spontanée
-- aux interruptions médicales de grossesse (IMG)
+Le script setup.sh est une alternative si python3 désigne Python 3.12. Le script run.sh réutilise cet environnement. L’activation manuelle de l’environnement est facultative avec ces commandes.
 
-Les données ont été préparées et intégrées dans une base SQLite afin de faciliter leur exploitation dans l'application.
+## Fonctionnalités
 
-## Analyses et visualisations
+- Consultation des naissances par France, régions et départements.
+- Consultation de la mortinatalité par France, régions et DROM.
+- Analyse croisée, classements et statistiques SQL.
+- Exports CSV/ZIP conditionnés à la connexion.
+- Inscription et connexion sécurisées, expiration de session et limitation des tentatives.
+- Mes analyses enregistrées : création, consultation, renommage et suppression de configurations personnelles de classement régional, stockées avec TinyDB.
 
-Plusieurs analyses exploratoires et visualisations ont été réalisées :
+Les unités et limites scientifiques doivent être interprétées à partir des sources. Les marqueurs * et ** présents dans trois cellules DROM sont conservés dans SQLite ; leur signification doit être confirmée dans la documentation source. Les comparaisons restent descriptives et ne démontrent pas de causalité.
 
-- évolution temporelle des indicateurs de 2012 à 2023
-- comparaison des régions
-- analyse de l'Île-de-France
-- graphiques en barres et séries temporelles
-- nuages de points
-- boxplots
-- heatmaps
+## Données et reconstruction
 
-## Technologies utilisées
+Les CSV et Excel d’origine du dossier reçu sont conservés. La base dérivée data/perinatalite.db inclut les tables historiques et trois tables relationnelles normalisées. Elle contient 19 territoires de mortinatalité, 4 indicateurs et 912 observations (y compris les valeurs manquantes).
 
-- Python
-- Pandas
-- NumPy
-- SQL
-- SQLite
-- Matplotlib
-- Seaborn
-- Plotly
-- Streamlit
-- Git / GitHub
+Pour reconstruire cette base depuis les CSV préparés, application arrêtée :
 
-## Application
+```bash
+python -m scripts.rebuild_database --force
+```
 
-Une application interactive développée avec Streamlit permet d'explorer les données et les principaux résultats de l'analyse.
+Cette commande ne refait pas le nettoyage des Excel ; elle reproduit l’étape CSV préparés vers SQLite. Les notebooks initiaux restent disponibles pour la préparation amont.
 
-### 🌐 Application en ligne
+## Comptes et fichiers privés
 
-👉 [Accéder au tableau de bord interactif](https://perinatal-dashboard-france-6lwbjdx4awapp8vhhdawde.streamlit.app/)
+Une nouvelle installation crée data/private/users.db et data/private/saved_analyses.json. Pour un hébergement, PERINATAL_RUNTIME_DIR permet de choisir un répertoire privé persistant. Si un ancien data/users.db existe, le modèle le conserve comme base de comptes : faire une sauvegarde avant la mise à jour. Ne pas déplacer ou supprimer cette base en cours d’utilisation.
 
-## Structure du projet
+Les comptes réels, journaux privés, fichiers TinyDB et fichiers session.json sont exclus de l’archive distribuée. Ils ne doivent pas être ajoutés à Git. Les sauvegardes sont privées elles aussi.
 
-Le projet est organisé selon une architecture MVC (Model – View – Controller), afin de séparer la gestion des données, la logique de l'application et l'interface utilisateur.
+## Tests
 
-- **Model (`src/models/`)** : gestion de la base de données SQLite, accès aux données et traitements liés aux indicateurs de naissances et de mortinatalité.
-- **Controller (`src/controllers/`)** : assure la liaison entre les modèles et les vues et gère la logique associée aux analyses et aux différents indicateurs.
-- **View (`src/views/`)** : contient les différentes pages de l'application Streamlit et assure la présentation des données, des indicateurs et des visualisations interactives.
+Dans l’environnement du projet :
 
-Cette architecture permet de séparer les responsabilités, d'améliorer la lisibilité du code et de faciliter la maintenance et l'évolution de l'application.
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest --cov=src --cov-report=term --junitxml=reports/junit.xml
+```
 
-## Compétences mobilisées
+Résultat de validation : 66 tests réussis, couverture de lignes sous src arrondie à 82 %, sous Linux / Python 3.12.14. Les tests UI utilisent le moteur Streamlit AppTest, sans navigateur réel. Windows, Docker, le pipeline GitHub distant et un hébergement public ne sont pas validés par cette exécution.
 
-- Nettoyage et préparation des données
-- Analyse exploratoire des données
-- Manipulation de données avec Pandas
-- Requêtes SQL
-- Création de visualisations
-- Structuration d'une application selon une architecture MVC
-- Développement d'un tableau de bord interactif
-- Utilisation de Git et GitHub
+## Documentation
 
-## Contexte
+- COMMENCER_ICI.md : installation et lecture conseillée.
+- docs/conception.md : besoins, parcours, architecture et schémas.
+- docs/plan_tests.md : scénarios, critères et preuves.
+- docs/deploiement.md : local, Docker, stockage et retour arrière.
+- docs/correspondance_CDA.md : compétences, preuves et limites.
+- rapport/ : chapitres 7 à 10 actualisés, prêts à copier dans le rapport.
+- reports/ : résultats automatisés de cette version.
 
-Projet réalisé dans le cadre d'une formation Data Analyst à partir d'un modèle de démarrage fourni pour l'application Streamlit, puis adapté et développé pour l'analyse des indicateurs de santé périnatale.
+## Provenance
 
-## Auteur
-
-**Marwa MCHAREK**
-
-Data Analyst | Santé publique & Data Science en santé
+Le projet initial utilise le template Streamlit fourni par DATAROCKSTARS (Marouan K., Bilel O., Matis C.). Les données et analyses proviennent du projet périnatalité fourni. Aucun entretien utilisateur réel, travail d’équipe Scrum ou déploiement public n’est revendiqué par les documents ajoutés.

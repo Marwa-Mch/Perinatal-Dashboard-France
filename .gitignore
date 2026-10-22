@@ -4,3 +4,31 @@ session.json
 data/users.db
 __pycache__/
 *.pyc
+# Comptes et journaux privés
+data/users.db
+data/users.db-*
+
+data/private/
+backups/
+.venv/
+.coverage
+.pytest_cache/
+reports/
+session.json
+
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+.streamlit/secrets.*.toml
+
+# Fichiers temporaires
+*.log
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Documents du rapport PFE
+rapport/
+Chapitre_8_authentification.md

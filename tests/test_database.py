@@ -1,22 +1,49 @@
-from src.models.database import Database
-from src.models.session import Session
+"""Tests SQLite isolés : ne jamais écrire dans les comptes réels."""
+import sqlite3
+import pytest
+from src.models import database
 
-import unittest
-
-class UnitTest (unittest.TestCase):
-    def test_execute(self):
-        db = Database()
-        res = db.execute("SELECT * FROM users")
-        self.assertIsNotNone(res, "execute function doesn't works !!!")
-
-    def test_commit(self):
-        db = Database()
-        s = Session("test@gmail.com", "123456789")
-        db.execute(f"INSERT INTO users (email,password) VALUES ('{s.email}', '{s.hash()}')", )
-        print(f"SELECT uid FROM users WHERE password='{s.hash()}' and email='{s.email}'")
-        res = db.execute(f"SELECT uid FROM users WHERE password='{s.hash()}' and email='{s.email}'")
-        self.assertEqual(len(res.fetchone()), 1, "commit function doesn't works !!!" )
+@pytest.fixture
+def path(tmp_path, monkeypatch):
+    target = tmp_path / "users.db"
+    monkeypatch.setattr(database, "DATABASE_PATH", target)
+    return target
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_commit_persists(path):
+    db = database.Database()
+    db.execute("INSERT INTO users(email,password) VALUES (?,?)", ("a@example.fr", "empreinte-test"))
+    db.commit()
+    db.close()
+    with sqlite3.connect(path) as connection:
+        assert connection.execute("SELECT email FROM users").fetchone()[0] == "a@example.fr"
+
+
+def test_unique_constraint(path):
+    db = database.Database()
+    try:
+        db.execute("INSERT INTO users(email,password) VALUES (?,?)", ("a@example.fr", "x"))
+        db.commit()
+        with pytest.raises(sqlite3.IntegrityError):
+            db.execute("INSERT INTO users(email,password) VALUES (?,?)", ("a@example.fr", "y"))
+    finally:
+        db.close()
+
+
+def test_foreign_keys(path):
+    db = database.Database()
+    try:
+        with pytest.raises(sqlite3.IntegrityError):
+            db.execute("INSERT INTO logs(uid,action,value) VALUES (999,'logged','0')")
+    finally:
+        db.close()
+
+
+def test_parameterized_query(path):
+    db = database.Database()
+    try:
+        db.execute("INSERT INTO users(email,password) VALUES (?,?)", ("a@example.fr", "x"))
+        db.commit()
+        assert db.execute("SELECT uid FROM users WHERE email=?", ("' OR 1=1 --",)).fetchone() is None
+    finally:
+        db.close()

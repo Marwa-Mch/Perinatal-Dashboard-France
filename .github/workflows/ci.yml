@@ -1,0 +1,37 @@
+name: Validation du projet
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-lock.txt -r requirements-dev.txt
+      - run: python -m scripts.rebuild_database --force
+      - run: python -m pytest --junitxml=reports/junit.xml --cov=src --cov-report=term --cov-report=xml:reports/coverage.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultats-tests
+          path: reports/
+  container:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t perinatalite:test .
+      - run: docker run -d --name dashboard -p 127.0.0.1:8501:8501 perinatalite:test
+      - run: |
+          for attempt in $(seq 1 20); do
+            if curl --fail http://127.0.0.1:8501/_stcore/health; then exit 0; fi
+            sleep 2
+          done
+          docker logs dashboard
+          exit 1
+      - run: docker rm -f dashboard
+        if: always()
